@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>3D Storybook — Monthsarry Message</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --book-w: 760px;
+    --book-h: 480px;
+    --cover-time: 1200ms;
+    --open-zoom: 60px;
+    --parchment: radial-gradient(110% 80% at 50% 40%, #f7e9c6 0%, #f0dfb0 52%, #e2cfa0 65%, #d4bd8d 78%, #b79f76 100%);
+  }
+
+  html, body { height: 100%; margin: 0; }
+  body{
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    background:
+      radial-gradient(1200px 700px at 50% -200px, rgba(255,255,255,.25), transparent 70%),
+      linear-gradient(180deg, #1b2735 0%, #090a0f 100%);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:#1f160e;
+    overflow:hidden;
+  }
+
+  .stage{
+    position:relative;
+    width:min(94vw, var(--book-w));
+    height:min(calc(94vw * 0.63), var(--book-h));
+    perspective: 2000px;
+    transform-style: preserve-3d;
+  }
+  .book-wrap{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 900ms cubic-bezier(.17,.67,.29,1);
+  }
+  .stage.open .book-wrap{
+    transform: translateZ(var(--open-zoom)) translateY(-6px) rotateX(2deg);
+  }
+
+  .book{
+    position:relative; width:100%; height:100%;
+    transform-style: preserve-3d;
+    filter: drop-shadow(0 28px 50px rgba(0,0,0,.45));
+  }
+
+  .back{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(90deg, #2c1b10 0 4%, transparent 4% 96%, #2c1b10 96%),
+      linear-gradient(135deg, #3f2818 0%, #5a3a22 35%, #4a2f1b 55%, #2e1c10 100%);
+    border-radius:12px;
+    transform: translateZ(-4px);
+  }
+
+  .block{
+    position:absolute; inset:8px;
+    background:
+      linear-gradient(90deg, #e8e1d5 0 3%, #f2ece3 3% 97%, #e8e1d5 97%),
+      repeating-linear-gradient(0deg, transparent 0 6px, rgba(0,0,0,.025) 6px 7px);
+    border-radius:10px;
+    transform: translateZ(-2px);
+  }
+
+  .page{
+    position:absolute; inset:12px 12px 12px 16px;
+    border-radius:10px;
+    background:
+      radial-gradient(90% 70% at 50% 20%, rgba(255,255,255,.25), transparent 60%),
+      var(--parchment);
+    box-shadow:
+      inset 0 0 0 2px rgba(120,80,40,.18),
+      inset 0 0 45px rgba(80,60,30,.25);
+    overflow:auto;
+    padding:30px 38px;
+  }
+  .page::-webkit-scrollbar{ width:10px; }
+  .page::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.15); border-radius:8px; }
+
+  .message{
+    font-size: clamp(16px, 1.8vw, 20px);
+    line-height: 1.75;
+    white-space: pre-wrap;
+  }
+
+  .candle{
+    position:absolute; inset:0; pointer-events:none; z-index:2;
+    mix-blend-mode: soft-light;
+    opacity:.65;
+    background:
+      radial-gradient(260px 190px at 65% 28%, rgba(255,232,160,.23), transparent 70%),
+      radial-gradient(440px 280px at 33% 78%, rgba(255,220,140,.17), transparent 75%);
+    animation: flicker 2.2s infinite ease-in-out;
+  }
+  @keyframes flicker{
+    0%  { opacity:.55; }
+    35% { opacity:.72; }
+    60% { opacity:.60; }
+    100%{ opacity:.66; }
+  }
+
+  .cover{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(250px 180px at 30% 30%, rgba(255,255,255,.22), transparent 60%),
+      radial-gradient(300px 220px at 70% 70%, rgba(0,0,0,.28), transparent 70%),
+      linear-gradient(135deg, #4a2f1b 0%, #72492d 40%, #5c3a23 55%, #3e2719 100%);
+    border-radius:12px;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    box-shadow:
+      inset 0 0 0 2px rgba(255,215,128,.22),
+      inset 0 0 0 6px rgba(0,0,0,.35);
+    transition: transform var(--cover-time) cubic-bezier(.2,.7,.2,1);
+    z-index:5;
+  }
+  .cover::before{
+    content:"";
+    position:absolute; inset:16px;
+    border-radius:8px;
+    box-shadow:
+      0 0 0 2px rgba(255,235,170,.6),
+      inset 0 0 0 2px rgba(90,55,30,.7);
+  }
+  .cover::after{
+    content:"Our Little Story";
+    position:absolute; top:34%; left:50%; transform:translateX(-50%);
+    font-family: "Georgia", serif;
+    letter-spacing:.06em;
+    font-size: clamp(20px, 2.7vw, 36px);
+    color:#f7e3a2;
+    text-shadow: 0 1px 0 #5a3a23, 0 2px 8px rgba(0,0,0,.6);
+  }
+  .stage.open .cover{ transform: rotateY(-165deg); }
+
+  .hinge-shadow{
+    position:absolute; inset:0;
+    border-radius:12px;
+    pointer-events:none;
+    background: radial-gradient(40% 100% at 4% 50%, rgba(0,0,0,.37), transparent 55%);
+    opacity:0;
+    transition: opacity var(--cover-time) ease;
+  }
+  .stage.open .hinge-shadow{ opacity:.9; }
+
+  .controls{
+    margin-top: min(4vh, 22px);
+    display:flex; gap:12px; justify-content:center;
+  }
+  button{
+    border:none; cursor:pointer;
+    padding:11px 18px; border-radius:999px;
+    background:#e9c07d; color:#3a240f; font-weight:700; font-size:15px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  }
+  button:hover{ filter:brightness(0.95); }
+
+  #yt-holder{
+    position:fixed; width:1px; height:1px;
+    top:-9999px; left:-9999px; overflow:hidden;
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="book-wrap">
+      <div class="book">
+        <div class="back"></div>
+        <div class="block"></div>
+        <div class="page">
+          <div class="candle"></div>
+          <div class="message" id="message"></div>
+        </div>
+        <div class="cover"></div>
+        <div class="hinge-shadow"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="openBtn">Open Book</button>
+    <button id="closeBtn">Close Book</button>
+  </div>
+
+  <div id="yt-holder">
+    <div id="player"></div>
+  </div>
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+  const messageText =
+`Happy 3rd Monthsarry, my love. Three months may seem short to some, but to me, every single day we’ve shared has been a treasure. From the first moment we met, you’ve filled my life with warmth, comfort, and laughter. Every glance you give me feels like a quiet promise that we’ll keep choosing each other every single day. These past months have felt like a beautiful song — every note a memory and every chord a shared dream. Even on ordinary days, you make the world feel brighter just by being in it. Every time we talk, I find myself falling for you all over again, as if it were the very first time. Today, as we celebrate this small yet special milestone, I want to remind you just how much you mean to me, more than words can ever hold.
+
+I’m deeply thankful for everything you’ve brought into my life. You’ve shown me that love thrives in the little acts of care we give each other each day. Your patience, your gentle understanding, and the way you steady my heart are gifts I cherish. I appreciate how you listen even when my thoughts are scattered and my words fall short. Your laughter has become my favorite melody, and your smile remains my favorite sight no matter how many times I see it. The faith you have in me, especially during my weakest moments, gives me strength to grow. You turn simple days into memories worth keeping and quiet moments into something tender. For all of this and so much more, I’m endlessly grateful for you, my love.
+
+Life won’t always be easy, and I know we’ll face challenges we can’t always predict. But I’m not afraid of the storms, as long as they find me standing beside you. Misunderstandings may happen and feelings may sometimes get bruised, yet I believe our love is strong enough to heal and learn. What makes us unbreakable isn’t perfection, but the will to stay, to listen, and to grow together. I promise to be patient with you even when the path twists and turns more than we expect. I’ll hold your hand through the noise, just as you’ve held mine when doubts tried to speak louder than truth. We are a team, and together there’s nothing we can’t overcome with grace and courage. No matter what, I’ll keep choosing you — every single day, with a heart that remembers why we began.
+
+As we close this chapter of our third month together, I’m excited to write countless more with you. I dream of more monthsarries, anniversaries, and a lifetime of ordinary days made beautiful by our love. I want us to keep discovering new things about each other, even as the years unfold and the pages turn. We’ll laugh at our silly moments, cherish the quiet ones, and grow stronger through the hard ones that teach us how to love better. I can’t wait for the adventures we’ll take and the dreams we’ll chase side by side. Each month is another chance to love you more deeply than before and to honor the promises we’ve made. May our hearts stay as full as they are today, and may our story keep blooming with every sunrise. Here’s to us, my love — to more chapters, more grace, and a forever we’ll write together.`;
+
+   const stage = document.getElementById('stage');
+    const openBtn = document.getElementById('openBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const messageEl = document.getElementById('message');
+
+    const PART_DELAY = 2600;
+    let timer = null, charIndex = 0;
+
+    function clearTyping() {
+      clearTimeout(timer);
+      charIndex = 0;
+      messageEl.textContent = "";
+    }
+
+    function typeNext() {
+      if (charIndex < messageText.length) {
+        messageEl.textContent += messageText.charAt(charIndex++);
+        timer = setTimeout(typeNext, 60);
+      } else {
+        fadeOutAndStop(2200);
+      }
+    }
+
+    openBtn.addEventListener('click', () => {
+      clearTyping();
+      stage.classList.add('open');
+      setTimeout(() => {
+        playMusic();
+        typeNext();
+      }, PART_DELAY);
+    });
+
+    closeBtn.addEventListener('click', () => {
+      stage.classList.remove('open');
+      clearTyping();
+      fadeOutAndStop(800);
+    });
+
+    /* ------------- YouTube Audio ------------- */
+    const VIDEO_ID = "kSNHxOFuO0Y"; // Your chosen song
+    let ytPlayer, fadeHandle;
+
+    // YouTube API Callback
+    function onYouTubeIframeAPIReady() {
+      ytPlayer = new YT.Player('player', {
+        height: '0',
+        width: '0',
+        videoId: VIDEO_ID,
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          rel: 0,
+          fs: 0
+        },
+        events: {
+          'onReady': function (e) {
+            e.target.setVolume(100);
+          }
+        }
+      });
+    }
+
+    // Register globally
+    window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+    function playMusic() {
+      if (ytPlayer && ytPlayer.playVideo) {
+        try {
+          ytPlayer.setVolume(100);
+          ytPlayer.playVideo();
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    }
+
+    function fadeOutAndStop(ms) {
+      if (!ytPlayer || !ytPlayer.getVolume) return;
+      clearInterval(fadeHandle);
+      const startVol = ytPlayer.getVolume ? ytPlayer.getVolume() : 100;
+      const steps = Math.max(8, Math.floor(ms / 90));
+      let step = 0;
+      fadeHandle = setInterval(() => {
+        step++;
+        const vol = Math.round(startVol * (1 - step / steps));
+        try {
+          ytPlayer.setVolume(vol);
+        } catch (e) {}
+        if (step >= steps) {
+          clearInterval(fadeHandle);
+          try {
+            ytPlayer.stopVideo();
+          } catch (e) {}
+        }
+      }, Math.max(40, Math.floor(ms / steps)));
+    }
+  </script>
+</body>
+</html>
